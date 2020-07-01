@@ -108,28 +108,30 @@ class RPSGame
   end
 
   def play_again?
-    answer = nil
+    answer = ""
+
     loop do
-      puts "Would you like to play again? Enter yes or no:"
+      puts "Would you like to play again? Enter y or n:"
       answer = gets.chomp
-      break if answer == 'yes' || answer == 'no'
-      puts "Incorrect response, enter yes or no:"
+      break if ['y', 'n'].include?(answer.downcase)
+      puts "Incorrect response, enter y or n:"
     end
 
-    if answer == 'yes'
-      RPSGame.new.play # not sure if this is good practise? Instantiating a new object within an object?  Probably not..
-    else
-      display_goodbye_message
-    end
+    answer == 'y' ? true : false
   end
 
   def play
     display_welcome_message
-    human.choose
-    computer.choose
-    display_moves
-    display_winner
-    play_again?
+
+    loop do
+      human.choose
+      computer.choose
+      display_moves
+      display_winner
+      break unless play_again?
+    end
+
+    display_goodbye_message
   end
 end
 
