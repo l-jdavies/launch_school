@@ -1,0 +1,10 @@
+welcome: "Hi, welcome to the mortgage calculator. Let's start by getting some information so we can calculate your monthly repayments."
+amount: "Enter your loan amount. Do not enter the $ sign or spaces:"
+amount_error: "That isn't a valid number. Try again and make sure you don't enter the $ sign or spaces:"
+apr: "Enter the Annual Percentage Rate (APR) for your loan. Don't include the % sign. If the APR is 5% enter 5 not 0.05:"
+apr_error: "That isn't a valid number. Try again."
+loan_length: "What is the duration of your loan? Enter the number of years:"
+length_error: "That isn't a valid number of years. Try again."
+repeat_operation: "Would you like to perform another calculation? (Enter 'Y' to run the calculator again)."
+thank_you: "Thank you for using the mortgage calculator."
+
