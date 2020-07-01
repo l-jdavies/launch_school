@@ -19,14 +19,14 @@ class Move
 
   def >(other_move)
     (rock? &&  other_move.scissors?) ||
-    (paper? && other_move.rock?) ||
-    (scissors? && other_move.paper?)
+      (paper? && other_move.rock?) ||
+      (scissors? && other_move.paper?)
   end
 
   def <(other_move)
     (rock? && other_move.paper?) ||
-    (paper? && other_move.scissors?) ||
-    (scissors? && other_move.rock?)
+      (paper? && other_move.scissors?) ||
+      (scissors? && other_move.rock?)
   end
 
   def to_s
@@ -40,7 +40,7 @@ class Player
   def initialize
     set_name
   end
- end
+end
 
 class Human < Player
   def set_name
@@ -117,7 +117,7 @@ class RPSGame
       puts "Incorrect response, enter y or n:"
     end
 
-    answer == 'y' ? true : false
+    answer == 'y'
   end
 
   def play
