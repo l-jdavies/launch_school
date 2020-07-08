@@ -1,23 +1,55 @@
+module CommandMessages
+
+  def game_rules
+    puts "Welcome to rock, paper, scissors, lizard, Spock!"
+    puts
+    puts "The rules of the game are:"
+    puts "1) lizard eats paper and poisons Spock"
+    puts "2) Spock vaporizes rock and crushes scissors"
+    puts "3) Scissors cuts paper and decapitates lizard"
+    puts "4) Paper disproves Spock and covers rock"
+    puts "5) Rock crushes lizard and crushes scissors"
+    puts "6) The first one to win five games is the grand winner"
+    puts
+    puts "Let the games begin..."
+    puts
+  end
+
+  def display_goodbye_message
+    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock!"
+  end
+  
+  def display_winner
+    game_winner.nil? ? (puts "It's a tie!") : (puts "The winner of the game is: #{game_winner}!")
+  end
+
+  def display_moves
+    puts
+    puts "#{human.name} chose #{human.move.value}."
+    puts "#{computer.name} chose #{computer.move.value}."
+  end
+
+
+  def display_score
+    puts
+    puts "The current score is..."
+    puts "#{human.name}: #{human.score}"
+    puts "#{computer.name}: #{computer.score}"
+  end
+
+  def display_overall_winner
+    puts
+    puts "The overall winner is #{overall_winner}! Congratulations!"
+  end
+end
+
 class Move
-  attr_accessor :value, :beats, :game_winner, :overall_winner
+  attr_accessor :value, :beats,
 
   def to_s
     @value
   end
-  
-  def >(other)
-    beats.include?(other)      
-  end
 
-  def <(other)
-    beats.include?(other)
-  end
-end
-
-class Score
-  def initialize
-    @wins = 0
-  end
 end
 
 class Rock < Move
@@ -30,7 +62,7 @@ end
 class Paper < Move
   def initialize
     @value = 'paper'
-    @beats = ['spock', 'lizard']
+    @beats = ['spock', 'rock']
   end
 end
 
@@ -56,7 +88,7 @@ class Spock < Move
 end
 
 class Player
-  attr_accessor :move, :name
+  attr_accessor :move, :name, :score
 
   PLAY_SELECTION = {
     'rock' => Rock.new,
@@ -67,6 +99,7 @@ class Player
   }
  
   def initialize
+    @score = 0
     set_name
   end
 end
@@ -76,7 +109,7 @@ class Human < Player
     n = ""
     loop do
       puts "Please enter your name:"
-      n = gets.chomp
+      n = gets.chomp.capitalize
       break unless n.empty?
       puts "Try again. Please enter your name:"
     end
@@ -107,47 +140,44 @@ class Computer < Player
 end
 
 class RPSGame
+  include CommandMessages
 
-  attr_accessor :human, :computer, :game_winner, :overall_winner
+  attr_accessor :human, :computer, :game_winner, :overall_winner, :score
 
   def initialize
     @human = Human.new
     @computer = Computer.new
-    @game_winner = nil
-    @overall_winner = nil
   end
 
-  def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
+  def declare_game_winner
+    if human.move == computer.move
+      self.game_winner = nil
+    elsif (human.move.beats).include?(computer.move.value)
+      self.game_winner = human.name
+    elsif (computer.move.beats).include?(human.move.value)
+      self.game_winner = computer.name
+    end
   end
 
-  def display_goodbye_message
-    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock!"
+  def declare_overall_winner
+    if human.score >= 5
+      self.overall_winner = human.name
+    elsif computer.score >= 5
+      self.overall_winner = computer.name
+    else
+      self.overall_winner = nil
+    end
   end
-
-  def display_moves
-    puts "#{human.name} chose #{human.move}."
-    puts "#{computer.name} chose #{computer.move}."
-  end
-
-   def declare_game_winner
-     if (human.move).to_s == (computer.move).to_s
-       puts "It's a tie!"
-     elsif (human.move.beats).include?((computer.move).to_s)
-       puts "Human wins"
-     else
-       puts "Computer wins"
-     end
-  end
- 
-  def display_winner
-    puts "The winner is #{game_winner}!"
+  def update_score
+    human.score += 1 if game_winner == human.name
+    computer.score += 1 if game_winner == computer.name
   end
 
   def play_again?
     answer = ""
 
     loop do
+      puts
       puts "Would you like to play again? Enter y or n:"
       answer = gets.chomp
       break if ['y', 'n'].include?(answer.downcase)
@@ -157,18 +187,28 @@ class RPSGame
     answer == 'y'
   end
 
+  def overall_winner?
+    declare_overall_winner
+    overall_winner != nil
+  end
+
   def play
-    display_welcome_message
+    system 'clear'
+    game_rules
 
     loop do
       human.choose
       computer.choose
-      declare_game_winner
       display_moves
+      declare_game_winner
+      update_score
       display_winner
-      break unless play_again?
+      display_score
+      break if overall_winner? || play_again? == false
+      system 'clear'
     end
 
+    display_overall_winner if overall_winner?
     display_goodbye_message
   end
 end
