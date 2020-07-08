@@ -1,4 +1,5 @@
 module CommandMessages
+  # rubocop:disable Metrics/MethodLength
   def game_rules
     puts "Welcome to rock, paper, scissors, lizard, Spock!"
     puts
@@ -13,14 +14,19 @@ module CommandMessages
     puts "Let the games begin..."
     puts
   end
+  # rubocop:enable Metrics/MethodLength
 
   def display_goodbye_message
     puts
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock!"
   end
-  
+
   def display_winner
-    game_winner.nil? ? (puts "It's a tie!") : (puts "The winner of the game is: #{game_winner}!")
+    if game_winner.nil?
+      puts "It's a tie!"
+    else
+      puts "The winner of the game is: #{game_winner}!"
+    end
   end
 
   def display_moves
@@ -28,7 +34,6 @@ module CommandMessages
     puts "#{human.name} chose #{human.move.value}."
     puts "#{computer.name} chose #{computer.move.value}."
   end
-
 
   def display_score
     puts
@@ -62,10 +67,15 @@ end
 class Move
   attr_accessor :value, :beats,
 
+  # rubocop:disable Style/AlignParameters (cant figure out why this problem)
   def to_s
-    @value
+    value
   end
+  # rubocop:enable Style/AlignParameters
 
+  def >(other)
+    beats.include?(other.value)
+  end
 end
 
 class Rock < Move
@@ -113,7 +123,7 @@ class Player
     'lizard' => Lizard.new,
     'spock' => Spock.new
   }
- 
+
   def initialize
     @move_history = []
     @score = 0
@@ -141,13 +151,13 @@ class Human < Player
       puts "Invalid choice, enter rock, paper, scissors, lizard or spock:"
     end
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
 class Computer < Player
 end
-  
+
 class R2D2 < Computer
   def initialize
     self.name = 'R2D2'
@@ -158,7 +168,7 @@ class R2D2 < Computer
   def choose
     choice = 'lizard'
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
@@ -172,7 +182,7 @@ class Hal < Computer
   def choose
     choice = ['rock', 'paper'].sample
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
@@ -186,7 +196,7 @@ class Chappie < Computer
   def choose
     choice = ['rock', 'paper', 'lizard', 'spock'].sample
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
@@ -200,7 +210,7 @@ class Sony < Computer
   def choose
     choice = ['paper', 'scissors'].sample
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
@@ -214,7 +224,7 @@ class Number5 < Computer
   def choose
     choice = ['lizard', 'spock'].sample
     self.move = Player::PLAY_SELECTION[choice]
-    self.move_history << choice
+    move_history << choice
   end
 end
 
@@ -229,24 +239,21 @@ class RPSGame
   end
 
   def declare_game_winner
-    if human.move == computer.move
-      self.game_winner = nil
-    elsif (human.move.beats).include?(computer.move.value)
-      self.game_winner = human.name
-    elsif (computer.move.beats).include?(human.move.value)
-      self.game_winner = computer.name
-    end
+    self.game_winner = if human.move > computer.move
+                         human.name
+                       elsif computer.move > human.move
+                         computer.name
+                       end
   end
 
   def declare_overall_winner
-    if human.score >= 5
-      self.overall_winner = human.name
-    elsif computer.score >= 5
-      self.overall_winner = computer.name
-    else
-      self.overall_winner = nil
-    end
+    self.overall_winner = if human.score >= 5
+                            human.name
+                          elsif computer.score >= 5
+                            computer.name
+                          end
   end
+
   def update_score
     human.score += 1 if game_winner == human.name
     computer.score += 1 if game_winner == computer.name
@@ -271,6 +278,7 @@ class RPSGame
     overall_winner != nil
   end
 
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def play
     system 'clear'
     game_rules
@@ -278,7 +286,6 @@ class RPSGame
     human.set_name
     loop do
       human.choose
-      #byebug
       computer.choose
       display_moves
       declare_game_winner
@@ -294,6 +301,7 @@ class RPSGame
     display_computer_move_history
     display_goodbye_message
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 end
 
 RPSGame.new.play
