@@ -1,5 +1,4 @@
 module CommandMessages
-
   def game_rules
     puts "Welcome to rock, paper, scissors, lizard, Spock!"
     puts
@@ -16,6 +15,7 @@ module CommandMessages
   end
 
   def display_goodbye_message
+    puts
     puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock!"
   end
   
@@ -39,7 +39,23 @@ module CommandMessages
 
   def display_overall_winner
     puts
-    puts "The overall winner is #{overall_winner}! Congratulations!"
+    puts "The grand winner is #{overall_winner}! Congratulations!"
+  end
+
+  def display_human_move_history
+    puts
+    puts "#{human.name} made these moves:"
+    human.move_history.each_with_index do |move, idx|
+      puts "Move #{idx + 1} was #{move}"
+    end
+  end
+
+  def display_computer_move_history
+    puts
+    puts "#{computer.name} made these moves:"
+    computer.move_history.each_with_index do |move, idx|
+      puts "Move #{idx + 1} was #{move}"
+    end
   end
 end
 
@@ -88,7 +104,7 @@ class Spock < Move
 end
 
 class Player
-  attr_accessor :move, :name, :score
+  attr_accessor :move, :name, :score, :move_history
 
   PLAY_SELECTION = {
     'rock' => Rock.new,
@@ -99,13 +115,13 @@ class Player
   }
  
   def initialize
+    @move_history = []
     @score = 0
-    set_name
   end
 end
 
 class Human < Player
- def set_name
+  def set_name
     n = ""
     loop do
       puts "Please enter your name:"
@@ -125,17 +141,80 @@ class Human < Player
       puts "Invalid choice, enter rock, paper, scissors, lizard or spock:"
     end
     self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
   end
 end
 
 class Computer < Player
-  def set_name
-    self.name = ['R2D2', 'Hal', 'Chappie', 'Sony', 'Number 5'].sample
+end
+  
+class R2D2 < Computer
+  def initialize
+    self.name = 'R2D2'
+    @move_history = []
+    @score = 0
   end
 
   def choose
-    choice = Player::PLAY_SELECTION.keys.sample
+    choice = 'lizard'
     self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
+  end
+end
+
+class Hal < Computer
+  def initialize
+    self.name = 'Hal'
+    @move_history = []
+    @score = 0
+  end
+
+  def choose
+    choice = ['rock', 'paper'].sample
+    self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
+  end
+end
+
+class Chappie < Computer
+  def initialize
+    self.name = 'Chappie'
+    @move_history = []
+    @score = 0
+  end
+
+  def choose
+    choice = ['rock', 'paper', 'lizard', 'spock'].sample
+    self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
+  end
+end
+
+class Sony < Computer
+  def initialize
+    self.name = 'Sony'
+    @move_history = []
+    @score = 0
+  end
+
+  def choose
+    choice = ['paper', 'scissors'].sample
+    self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
+  end
+end
+
+class Number5 < Computer
+  def initialize
+    self.name = 'Number 5'
+    @move_history = []
+    @score = 0
+  end
+
+  def choose
+    choice = ['lizard', 'spock'].sample
+    self.move = Player::PLAY_SELECTION[choice]
+    self.move_history << choice
   end
 end
 
@@ -146,7 +225,7 @@ class RPSGame
 
   def initialize
     @human = Human.new
-    @computer = Computer.new
+    @computer = [R2D2.new, Hal.new, Chappie.new, Sony.new, Number5.new].sample
   end
 
   def declare_game_winner
@@ -196,8 +275,10 @@ class RPSGame
     system 'clear'
     game_rules
 
+    human.set_name
     loop do
       human.choose
+      #byebug
       computer.choose
       display_moves
       declare_game_winner
@@ -209,6 +290,8 @@ class RPSGame
     end
 
     display_overall_winner if overall_winner?
+    display_human_move_history
+    display_computer_move_history
     display_goodbye_message
   end
 end
