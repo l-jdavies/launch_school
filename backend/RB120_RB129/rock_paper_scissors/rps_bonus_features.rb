@@ -67,7 +67,7 @@ end
 class Move
   attr_accessor :value, :beats,
 
-  # rubocop:disable Style/AlignParameters (cant figure out why this problem)
+  # rubocop:disable Style/AlignParameters (cant figure out this problem)
   def to_s
     value
   end
