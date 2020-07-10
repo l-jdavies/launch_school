@@ -1,6 +1,6 @@
 # Practice problems: Easy 1
 
-Q1. Which of the following are objects in Ruby? If they are objects, how can you find out what class they belong to?
+**Q1. Which of the following are objects in Ruby? If they are objects, how can you find out what class they belong to?**
 
 ```ruby
 true
@@ -13,7 +13,9 @@ true
 
     They are all objects. You can identify the class by calling the `class` method on the object.
 
-Q2. If we have a `Car` class and a `Truck` class and we want to be able to `go_fast`, how can we add the ability for them to go_fast using the module `Speed`? How can you check if your `Car` or `Truck` can now go fast?
+
+
+**Q2. If we have a `Car` class and a `Truck` class and we want to be able to `go_fast`, how can we add the ability for them to go_fast using the module `Speed`? How can you check if your `Car` or `Truck` can now go fast?**
 
 ```ruby
 module Speed
@@ -66,7 +68,9 @@ end
     truck.go_fast
     ```
 
-Q3. In the last question we had a module called `Speed` which contained a `go_fast` method. We included this module in the `Car` class as shown below.
+
+
+**Q3. In the last question we had a module called `Speed` which contained a `go_fast` method. We included this module in the `Car` class as shown below.**
 
 ```ruby
 module Speed
@@ -89,7 +93,9 @@ When we called the `go_fast` method from an instance of the `Car` class (as show
 
     By calling `self.class` in the `go_fast` method. This returns the class of the object `go_fast` was called on.
 
-Q4. If we have a class AngryCat how do we create a new instance of this class?
+
+
+**Q4. If we have a class AngryCat how do we create a new instance of this class?**
 
 - Answer:
 
@@ -97,7 +103,9 @@ Q4. If we have a class AngryCat how do we create a new instance of this class?
     cat = AngryCat.new
     ```
 
-Q5. Which of these two classes has an instance variable and how do you know?
+
+
+**Q5. Which of these two classes has an instance variable and how do you know?**
 
 ```ruby
 class Fruit
@@ -119,7 +127,9 @@ end
 
     Note, you can use the `instance_variable` methods to return an array of instance variables associated with an object.
 
-Q6. What could we add to the class below to access the instance variable `@volume`?
+
+
+**Q6. What could we add to the class below to access the instance variable `@volume`?**
 
 ```ruby
 class Cube
@@ -133,13 +143,17 @@ end
 
     `attr_reader`
 
-Q7. What is the default return value of `to_s` when invoked on an object? Where could you go to find out if you want to be sure?
+
+
+**Q7. What is the default return value of `to_s` when invoked on an object? Where could you go to find out if you want to be sure?**
 
 - Answer
 
     Returns the object's class and encoding of the object ID. Could check the Ruby documentation for `to_s` if wasn't sure.
 
-Q8. If we have a class such as the one below:
+
+
+**Q8. If we have a class such as the one below:**
 
 ```ruby
 class Cat
@@ -162,7 +176,9 @@ You can see in the `make_one_year_older` method we have used `self`. What does `
 
     The calling object.
 
-Q9. If we have a class such as the one below:
+
+
+**Q9. If we have a class such as the one below:**
 
 ```ruby
  class Cat
@@ -186,7 +202,9 @@ In the name of the `cats_count` method we have used `self`. What does `self` ref
 
     It refers to the class. `self.cats_count` is a class method.
 
-Q10.  If we have the class below, what would you need to call to create a new instance of this class.
+
+
+**Q10.  If we have the class below, what would you need to call to create a new instance of this class.**
 
 ```ruby
 class Bag
