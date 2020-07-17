@@ -8,8 +8,15 @@ module DisplayMessages
     puts ""
   end
 
+  def display_overall_winner
+    puts ""
+    puts "The overall winner is: #{detect_overall_winner}!"
+  end
+
   def display_welcome_message
-    puts "Hi #{human.name}! Welcome to Tic Tac Toe! You'll be playing against #{computer.name}."
+    puts "Welcome to Tic Tac Toe! You'll be playing against #{computer.name}."
+    puts "The first player to win a total of #{TTTGame::TOTAL_WINS_REQUIRED} games is the overall winner."
+    puts "Good luck!"
     puts
   end
 
@@ -95,6 +102,14 @@ class Board
     (1..9).each { |key| @squares[key] = Square.new }
   end
 
+  def find_at_risk_square(player_marker, line)
+    if @squares.values_at(*line).select(&:marked?).collect(&:marker).count { |x| x == player_marker } == 2
+      @squares.select { |k, v| line.include?(k) && v.marker == Square::INITIAL_MARKER }.keys.first
+    else
+      nil
+    end
+  end
+
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/MethodLength
   def draw
@@ -161,14 +176,10 @@ class Player
 end
 
 class Human < Player
-  def initialize
-    super
-    set_name
-  end
-
   def set_name
     n = ""
     loop do
+      puts ""
       puts "Please enter your name:"
       n = gets.chomp.capitalize
       break unless n.empty?
@@ -182,6 +193,7 @@ class Human < Player
 
     choice = nil
     loop do
+      puts ""
       puts "Would you like to play as an '#{@@marker_options[0]}' or '#{@@marker_options[1]}'?"
       choice = gets.chomp.upcase
       break if @@marker_options.include?(choice)
@@ -204,6 +216,9 @@ class Computer < Player
 end
 
 class TTTGame
+  DEFAULT_FIRST_MOVE = 'choose' 
+  TOTAL_WINS_REQUIRED = 5
+
   include DisplayMessages
 
   attr_reader :board, :human, :computer
@@ -217,6 +232,7 @@ class TTTGame
   def play
     clear
     display_welcome_message
+    human.set_name
     main_game
     display_goodbye_message
   end
@@ -225,18 +241,61 @@ class TTTGame
 
   def main_game
     loop do
-      select_markers
-      display_board
+      set_up_game
       player_move
       display_result
-      update_score
-      display_score
+      scores
       break unless play_again?
       reset
       display_play_again_message
     end
   end
   
+  def choose_player
+    loop do
+      puts ""
+      puts "Who would you like to make the first move? Player or Computer?"
+      response = gets.chomp.capitalize
+      if response == 'Player'
+        @current_marker = human.marker
+      elsif response == 'Computer'
+        @current_marker = computer.marker
+      else
+        puts "That's not a valid choice. Enter 'Player' or 'Computer'."
+      end
+      break if response == 'Player' || response == 'Computer'
+    end
+  end
+
+  def scores
+    update_score
+    display_score
+    if overall_winner?
+      display_overall_winner 
+      reset_scores
+    end
+  end
+
+  def reset_scores
+    human.score = 0
+    computer.score = 0
+  end
+
+  def default_first_player
+    if DEFAULT_FIRST_MOVE == 'Player'
+      @current_marker = human.marker
+    elsif DEFAULT_FIRST_MOVE == 'Computer'
+      @current_marker = computer.marker
+    else
+      choose_player
+    end
+  end
+
+  def set_up_game
+    select_markers
+    default_first_player
+  end
+
   def human_moves
     puts "Choose a square between #{joinor(board.unmarked_keys)}:"
     square = nil
@@ -250,13 +309,33 @@ class TTTGame
   end
   
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    square = computer_tactic(human.marker)
+
+    square = computer_tactic(computer.marker) if square.nil?
+
+    if square.nil?
+      square = if board.unmarked_keys.include?(5)
+                 5
+               else
+                 board.unmarked_keys.sample
+               end
+    end
+
+    board[square] = computer.marker
+  end
+  
+  def computer_tactic(marker)
+    square = nil
+    Board::WINNING_LINES.each do |line|
+      square = board.find_at_risk_square(marker, line)
+      break if square
+    end
+    square
   end
 
   def select_markers
     human.choose_marker
     computer.choose_marker
-    @current_marker = human.marker
   end
 
   def player_move
@@ -276,19 +355,28 @@ class TTTGame
     end
   end
 
-  def joinor(array)
-    array_with_delimiter = []
-
-    array.each_with_index do |item, index|
-      if index == array.size - 2
-        array_with_delimiter << item << ' or '
-      elsif index == array.size - 1
-        array_with_delimiter << item
-      else
-        array_with_delimiter << item << ', '
-      end
+  def detect_overall_winner
+    if human.score == TOTAL_WINS_REQUIRED
+      return human.name
+    elsif computer.score == TOTAL_WINS_REQUIRED
+      return computer.name
     end
-    array_with_delimiter.join
+    nil
+  end
+
+  def overall_winner?
+    !!detect_overall_winner
+  end
+
+  def joinor(arr, delimiter=', ', word='or')
+  case arr.size
+  when 0 then ''
+  when 1 then arr.first
+  when 2 then arr.join(" #{word} ")
+  else
+    arr[-1] = "#{word} #{arr.last}"
+    arr.join(delimiter)
+  end  
   end
 
   def play_again?
@@ -305,7 +393,6 @@ class TTTGame
 
   def reset
     board.reset
-    @current_marker = human.marker
     clear
   end
 
