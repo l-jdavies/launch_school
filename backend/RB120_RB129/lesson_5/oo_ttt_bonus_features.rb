@@ -1,11 +1,9 @@
-require 'byebug'
 module DisplayMessages
   def first_move_message
     puts ""
     puts "Who would you like to make the first move?"
     puts "Enter 'Computer' or 'Player':"
-    response = gets.chomp.capitalize
-    response
+    gets.chomp.capitalize
   end
 
   def display_score
@@ -202,7 +200,7 @@ class Human < Player
       puts ""
       puts "Please enter your name:"
       n = gets.chomp.capitalize
-      break unless n.empty?
+      break unless n.empty? || ('A'..'Z').cover?(n) == false
       puts "Try again. Please enter your name:"
     end
     @name = n
@@ -274,6 +272,26 @@ class TTTGame
     end
   end
 
+  def set_up_game
+    select_markers
+    default_first_player
+  end
+
+  def select_markers
+    human.choose_marker
+    computer.choose_marker
+  end
+
+  def default_first_player
+    if DEFAULT_FIRST_MOVE == 'Player'
+      @current_marker = human.marker
+    elsif DEFAULT_FIRST_MOVE == 'Computer'
+      @current_marker = computer.marker
+    else
+      choose_player
+    end
+  end
+
   def choose_player
     response = nil
     loop do
@@ -287,31 +305,26 @@ class TTTGame
     @current_marker = computer.marker if response == USERS[1]
   end
 
-  def scores
-    update_score
-    display_score
-    display_overall_winner if overall_winner?
-    reset_scores if overall_winner?
-  end
-
-  def reset_scores
-    human.score = 0
-    computer.score = 0
-  end
-
-  def default_first_player
-    if DEFAULT_FIRST_MOVE == 'Player'
-      @current_marker = human.marker
-    elsif DEFAULT_FIRST_MOVE == 'Computer'
-      @current_marker = computer.marker
-    else
-      choose_player
+  def player_move
+    loop do
+      current_player_moves
+      break if board.someone_won? || board.full?
+      clear_screen_and_display_board if human_turn?
     end
   end
 
-  def set_up_game
-    select_markers
-    default_first_player
+  def current_player_moves
+    if human_turn?
+      human_moves
+      @current_marker = computer.marker
+    else
+      computer_moves
+      @current_marker = human.marker
+    end
+  end
+
+  def human_turn?
+    @current_marker == human.marker
   end
 
   # rubocop:disable Metrics/AbcSize
@@ -353,17 +366,16 @@ class TTTGame
     square
   end
 
-  def select_markers
-    human.choose_marker
-    computer.choose_marker
+  def scores
+    update_score
+    display_score
+    display_overall_winner if overall_winner?
+    reset_scores if overall_winner?
   end
 
-  def player_move
-    loop do
-      current_player_moves
-      break if board.someone_won? || board.full?
-      clear_screen_and_display_board if human_turn?
-    end
+  def reset_scores
+    human.score = 0
+    computer.score = 0
   end
 
   def update_score
@@ -411,20 +423,6 @@ class TTTGame
   def reset
     board.reset
     clear
-  end
-
-  def human_turn?
-    @current_marker == human.marker
-  end
-
-  def current_player_moves
-    if human_turn?
-      human_moves
-      @current_marker = computer.marker
-    else
-      computer_moves
-      @current_marker = human.marker
-    end
   end
 end
 
