@@ -1,5 +1,13 @@
 require 'byebug'
 module DisplayMessages
+  def first_move_message
+    puts ""
+    puts "Who would you like to make the first move?"
+    puts "Enter 'Computer' or 'Player':"
+    response = gets.chomp.capitalize
+    response
+  end
+
   def display_score
     puts ""
     puts "The current scores are..."
@@ -13,12 +21,14 @@ module DisplayMessages
     puts "The overall winner is: #{detect_overall_winner}!"
   end
 
+  # rubocop:disable Metrics/LineLength
   def display_welcome_message
     puts "Welcome to Tic Tac Toe! You'll be playing against #{computer.name}."
     puts "The first player to win a total of #{TTTGame::TOTAL_WINS_REQUIRED} games is the overall winner."
     puts "Good luck!"
     puts
   end
+  # rubocop: enable Metrics/LineLength
 
   def display_goodbye_message
     puts "Thanks for playing Tic Tac Toe! Goodbye!"
@@ -47,7 +57,7 @@ module DisplayMessages
   def clear
     system 'clear'
   end
-  
+
   def display_result
     clear_screen_and_display_board
 
@@ -102,12 +112,22 @@ class Board
     (1..9).each { |key| @squares[key] = Square.new }
   end
 
-  def find_at_risk_square(player_marker, line)
-    if @squares.values_at(*line).select(&:marked?).collect(&:marker).count { |x| x == player_marker } == 2
-      @squares.select { |k, v| line.include?(k) && v.marker == Square::INITIAL_MARKER }.keys.first
-    else
-      nil
+  def count_number_of_marked_squares(player_marker, line)
+    @squares.values_at(*line).select(&:marked?).collect(&:marker).count \
+      { |x| x == player_marker }
+  end
+
+  def find_unmarked_square(line)
+    @squares.select do |k, v|
+      line.include?(k) && v.marker == Square::INITIAL_MARKER
     end
+            .keys
+            .first
+  end
+
+  def find_at_risk_square(player_marker, line)
+    find_unmarked_square(line) if \
+      count_number_of_marked_squares(player_marker, line) == 2
   end
 
   # rubocop:disable Metrics/AbcSize
@@ -188,6 +208,7 @@ class Human < Player
     @name = n
   end
 
+  # rubocop:disable Metrics/LineLength
   def choose_marker
     reset_marker_options
 
@@ -202,6 +223,7 @@ class Human < Player
 
     @marker = @@marker_options.delete(choice)
   end
+  # rubocop:enable Metrics/LineLength
 end
 
 class Computer < Player
@@ -216,8 +238,9 @@ class Computer < Player
 end
 
 class TTTGame
-  DEFAULT_FIRST_MOVE = 'choose' 
+  DEFAULT_FIRST_MOVE = 'choose'
   TOTAL_WINS_REQUIRED = 5
+  USERS = ['Player', 'Computer']
 
   include DisplayMessages
 
@@ -250,30 +273,25 @@ class TTTGame
       display_play_again_message
     end
   end
-  
+
   def choose_player
+    response = nil
     loop do
-      puts ""
-      puts "Who would you like to make the first move? Player or Computer?"
-      response = gets.chomp.capitalize
-      if response == 'Player'
-        @current_marker = human.marker
-      elsif response == 'Computer'
-        @current_marker = computer.marker
-      else
-        puts "That's not a valid choice. Enter 'Player' or 'Computer'."
-      end
-      break if response == 'Player' || response == 'Computer'
+      response = first_move_message
+      break if USERS.include?(response)
+      puts "That's not a valid choice."
     end
+
+    @current_marker = human.marker if response == USERS[0]
+
+    @current_marker = computer.marker if response == USERS[1]
   end
 
   def scores
     update_score
     display_score
-    if overall_winner?
-      display_overall_winner 
-      reset_scores
-    end
+    display_overall_winner if overall_winner?
+    reset_scores if overall_winner?
   end
 
   def reset_scores
@@ -296,6 +314,7 @@ class TTTGame
     default_first_player
   end
 
+  # rubocop:disable Metrics/AbcSize
   def human_moves
     puts "Choose a square between #{joinor(board.unmarked_keys)}:"
     square = nil
@@ -307,7 +326,8 @@ class TTTGame
 
     board[square] = human.marker
   end
-  
+  # rubocop:enable Metrics/AbcSize
+
   def computer_moves
     square = computer_tactic(human.marker)
 
@@ -323,7 +343,7 @@ class TTTGame
 
     board[square] = computer.marker
   end
-  
+
   def computer_tactic(marker)
     square = nil
     Board::WINNING_LINES.each do |line|
@@ -356,12 +376,9 @@ class TTTGame
   end
 
   def detect_overall_winner
-    if human.score == TOTAL_WINS_REQUIRED
-      return human.name
-    elsif computer.score == TOTAL_WINS_REQUIRED
-      return computer.name
-    end
-    nil
+    return human.name if human.score == TOTAL_WINS_REQUIRED
+
+    return computer.name if computer.score == TOTAL_WINS_REQUIRED
   end
 
   def overall_winner?
@@ -369,14 +386,14 @@ class TTTGame
   end
 
   def joinor(arr, delimiter=', ', word='or')
-  case arr.size
-  when 0 then ''
-  when 1 then arr.first
-  when 2 then arr.join(" #{word} ")
-  else
-    arr[-1] = "#{word} #{arr.last}"
-    arr.join(delimiter)
-  end  
+    case arr.size
+    when 0 then ''
+    when 1 then arr.first
+    when 2 then arr.join(" #{word} ")
+    else
+      arr[-1] = "#{word} #{arr.last}"
+      arr.join(delimiter)
+    end
   end
 
   def play_again?
