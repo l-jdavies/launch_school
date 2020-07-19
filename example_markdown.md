@@ -23,3 +23,7 @@ This text has a blue background
 > This is a quote
 
 This is a callout
+
+- Toggle
+
+    This text is inside a toggle
