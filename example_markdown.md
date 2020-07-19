@@ -10,7 +10,7 @@
 
 ```ruby
 def example_code
-	puts "I'm a Ruby code block!"
+  puts "I'm a Ruby code block!"
 end
 ```
 
