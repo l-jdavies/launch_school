@@ -1,3 +1,5 @@
+# Code review: https://launchschool.com/posts/1fb1c175
+
 module DisplayMessages
   def first_move_message
     puts ""
