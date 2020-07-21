@@ -12,14 +12,16 @@ Participants try to get as close as possible to 21 without going over.
 * If both totals are equal, then it's a tie and nobody wins.
 
 **Nouns and verbs:**
+
 Nouns: card, player, dealer, participant, deck, game, total
+
 Verbs: deal, hit, stay, busts
 
 'Total' has been listed as a noun but you wouldn't create a `Total` class, rather is an attribute within another class. It could be described as a verb: 'calculate_total'.
 
 Also, 'busts' isn't an action either participant is performing, rather it's a state.
 
-Organising the nouns into classes:
+**Organising the nouns into classes:**
 ```
 Player
 - hit
