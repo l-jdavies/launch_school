@@ -14,13 +14,26 @@ module DisplayMessages
       break if %w(hit h stay s).include?(response)
       puts "Invalid response."
     end
-    
+
     player.move = response
   end
 
   def display_hand_value
     puts ""
     puts "The total value of #{name}'s hand is: #{hand.hand_total}"
+  end
+
+  def display_winner
+    puts "The winner is #{name}!"
+  end
+
+  def display_lose
+    puts "#{player.name} and #{dealer.name} both went bust."
+    puts "You both lose!"
+  end
+
+  def display_tie
+    puts "It's a tie!"
   end
 
   # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
@@ -88,9 +101,9 @@ class Deck
     suits = %w(Hearts Diamond Spade Clubs)
     face = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'Jack', 'Queen', 'King', 'Ace']
 
-    face.each do |face|
-      suits.each do |suit|
-        cards << Card.new(suit, face)
+    face.each do |card_face|
+      suits.each do |card_suit|
+        cards << Card.new(card_suit, card_face)
       end
     end
   end
@@ -100,12 +113,12 @@ class Hand
   attr_accessor :cards, :hand_total
 
   FACE_CARDS = %w(Jack Queen King)
-  
+
   def initialize
     @cards = []
     @hand_total = 0
   end
-  
+
   def hit!(deck)
     cards << deck.deal
     update_value_of_hand
@@ -120,48 +133,58 @@ class Hand
   end
 
   def update_value_of_hand
-    self.hand_total = value_of_face_cards + value_of_number_cards + value_of_ace
+    self.hand_total = if ace?
+                        value_face_cards + value_number_cards + value_ace
+                      else
+                        value_face_cards + value_number_cards
+                      end
   end
 
   def reset
     @cards = []
     @hand_total = 0
   end
+
   private
 
-  def value_of_face_cards
+  def value_face_cards
     10 * cards.count { |element| FACE_CARDS.include?(element) }
   end
 
-  def value_of_number_cards
+  def value_number_cards
     value = 0
     cards.each do |element|
       value += element if element.is_a?(Integer)
     end
     value
   end
-  
-  def value_of_ace
+
+  def value_ace
     ace = 0
-    if cards.include?("Ace")
-      cards.count("Ace").times do
-        if (value_of_face_cards + value_of_number_cards) + ace + 11 <= Game::TARGET
-          ace += 11
-        else
-          ace += 1
-        end
-      end
+
+    current_total = value_face_cards + value_number_cards
+
+    cards.count("Ace").times do
+      ace += if current_total + ace + 11 <= Game::TARGET
+               11
+             else
+               1
+             end
     end
     ace
+  end
+
+  def ace?
+    cards.include?("Ace")
   end
 end
 
 class Participant
   include DisplayMessages
-  
+
   attr_accessor :hand, :move
   attr_reader :name
-  
+
   def initialize
     @hand = Hand.new
     @move = nil
@@ -222,6 +245,12 @@ class Dealer < Participant
   def set_name
     @name = "the dealer"
   end
+
+  def stay
+    puts ""
+    puts "#{name.capitalize} has decided to stay..."
+    display_hand_value
+  end
 end
 
 class Game
@@ -229,8 +258,8 @@ class Game
 
   TARGET = 21
   LIMIT = 17
-  attr_accessor :player, :dealer, :deck 
-  
+  attr_accessor :player, :dealer, :deck
+
   def initialize
     @player = Player.new
     @dealer = Dealer.new
@@ -238,8 +267,14 @@ class Game
   end
 
   def start
-    game_rules
-    set_contestant_name
+    set_up_game
+    game_play
+    display_goodbye_message
+  end
+
+  private
+
+  def game_play
     loop do
       deal_cards
       player_turn
@@ -248,10 +283,12 @@ class Game
       break unless play_again?
       reset_game
     end
-    display_goodbye_message
   end
-  
-  private
+
+  def set_up_game
+    game_rules
+    set_contestant_name
+  end
 
   def set_contestant_name
     player.set_name
@@ -267,7 +304,12 @@ class Game
 
   def player_turn
     player.display_hand_details
+    player_move
 
+    player.bust if player.busted?
+  end
+
+  def player_move
     loop do
       break if player.twentyone? || player.busted?
       display_hit_or_stay_message
@@ -278,25 +320,27 @@ class Game
         break
       end
     end
-
-    player.bust if player.busted?
   end
 
   def dealer_turn
     puts ""
     puts "It's the dealer's turn..."
 
-    until dealer.hand.hand_total >= LIMIT || dealer.busted? 
-      sleep(2)
-      puts ""
-      puts "The dealer has decided to hit."
-      dealer.hit(deck)
-    end
+    dealer_move
 
     if dealer.busted?
       dealer.bust
     else
       dealer.stay
+    end
+  end
+
+  def dealer_move
+    until dealer.hand.hand_total >= LIMIT || dealer.busted?
+      sleep(2)
+      puts ""
+      puts "The dealer has decided to hit."
+      dealer.hit(deck)
     end
   end
 
@@ -308,7 +352,6 @@ class Game
     else
       winner_no_bust
     end
-
   end
 
   def someone_busted?
@@ -316,22 +359,22 @@ class Game
   end
 
   def winner_with_bust
-    if player.busted? && dealer.busted? == false
-      puts "The winner is #{dealer.name}!"
-    elsif dealer.busted? && player.busted? == false
-      puts "The winner is #{player.name}!"
-    elsif player.busted? && dealer.busted?
-      puts "#{player.name} and #{dealer.name} went bust..you both lose!"
+    if player.busted? && dealer.busted?
+      display_lose
+    elsif player.busted?
+      dealer.display_winner
+    elsif dealer.busted?
+      player.display_winner
     end
   end
 
   def winner_no_bust
     if player.hand > dealer.hand
-      puts "The winner is #{player.name}!"
+      player.display_winner
     elsif dealer.hand > player.hand
-      puts "The winner is #{dealer.name}!"
-    elsif player.hand == dealer.hand
-      puts "It's a tie!"
+      dealer.display_winner
+    else
+      display_tie
     end
   end
 
