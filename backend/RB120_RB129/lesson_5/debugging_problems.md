@@ -59,7 +59,7 @@ To achieve this we can create a new `Library#display_books` instance method:
 
 ```ruby
 class Library
-	# other code omitted
+  # other code omitted
 
   def display_books
     books.each do |book|
@@ -192,7 +192,7 @@ This is because the default behavior of the `BasicObject#==` method is to determ
 
 ```ruby
 class GeoLocation
-	# omit rest of code
+  # omit rest of code
 
   def ==(other)
     latitude == other.latitude && longitude == other.longitude
@@ -505,23 +505,23 @@ p account.balance         # => 50
 The problem is the `BankAccount#withdraw` method. The code `success = (self.balance -= amount)` is always going to be truthy because setter methods always return the argument that was passed in.    Therefore, as long as the `balance` is greater than `0` `success` will always be `true` meaning this code:
 
 ```ruby
-if success
-      "$#{amount} withdrawn. Total balance is $#{balance}."
-    else
-      "Invalid. Enter positive amount less than or equal to current balance ($#{balance})."
-    end
+  if success
+    "$#{amount} withdrawn. Total balance is $#{balance}."
+  else
+    "Invalid. Enter positive amount less than or equal to current balance ($#{balance})."
+  end
 ```
 
 Will always execute the first line of the `if` statement. The `BankAccount#withdraw` method should be refactored:
 
 ```ruby
-	def withdraw(amount)
-    if amount > 0 && valid_transaction(balance - amount)
-      "$#{amount} withdrawn. Total balance is $#{balance}."
-    else
-      "Invalid. Enter positive amount less than or equal to current balance ($#{balance})."
-    end
+def withdraw(amount)
+  if amount > 0 && valid_transaction(balance - amount)
+    "$#{amount} withdrawn. Total balance is $#{balance}."
+  else
+    "Invalid. Enter positive amount less than or equal to current balance ($#{balance})."
   end
+end
 ```
 
 **8. Task manager**
