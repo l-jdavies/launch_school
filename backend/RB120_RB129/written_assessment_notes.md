@@ -119,13 +119,88 @@ In this example the `attr_writer` method for `@name`, which provides access to t
 
 ### Definition
 
-Polymorphism is the ability for different types of data to respond to a common interface. This provides flexibility, by enabling pre-written code to be utilised for new purposes. 
+Polymorphism is the ability for different types of data to respond to a common interface. This provides flexibility, by enabling pre-written code to be utilised for new purposes. It also produces more maintainable code. For polymorphism to occur we need two or more object types with a method of the same name. That enables the method to be invoked on the objects, regardless of the object type.
 
 Polymorphism can be achieved through:
 
 1. Inheritance
 2. Duck-typing
 3. Mixing in modules
+
+### Polymorphism through inheritance
+
+```ruby
+class Student
+  attr_reader :type
+
+  def student_type
+    @type = 'student'
+  end
+end
+
+class Undergraduate < Student
+  def student_type
+    @type = "undergraduate"
+  end
+end
+
+class Postgraduate < Student
+  def student_type
+    @type = "postgraduate"
+  end
+end
+
+def list_student_type(individual)
+  puts "I am a #{individual.student_type}!"
+end
+
+study_group = [Student.new, Undergraduate.new, Postgraduate.new]
+
+study_group.each { |person| list_student_type(person) }
+
+# => I am a student!
+# => I am a undergraduate!
+# => I am a postgraduate!
+```
+
+In this example there are three different object types but they have all inherited the `student_type` method. Even though each object type implements the `student_type` differently, the same method can be invoked on the different object types because they have all inherited the `student_type` method.
+
+### Polymorphism through duck-typing
+
+Polymorphism through duck typing is similar to polymorphism through inheritance in that Ruby doesn't concern itself with the class of an object, only the behaviours that are available to the object. However, duck typing differs from inheritance in that the different object types don't all inherit a method with the same name, instead a method with the same name is explicitly created in multiple un-related classes.
+
+```ruby
+class Person
+  def swim
+    puts "I'm swimming front crawl"
+  end
+end
+
+class Dog
+  def swim
+    puts "I'm doing a doggy paddle"
+  end
+end
+
+class Fish
+  def swim
+    puts "I'm a swimming pro"
+  end
+end
+
+def gone_swimming(creature)
+  creature.swim
+end
+
+river_swimmers = [Person.new, Dog.new, Fish.new]
+
+river_swimmers.each { |swimmer| gone_swimming(swimmer) }
+# => I'm swimming front crawl
+# => I'm doing a doggy paddle
+# => I'm a swimming pro
+```
+
+  
 
 ## Inheritance
 
@@ -149,7 +224,86 @@ If there is a "has-a" relationship = interface inheritance i.e. a `Dog` has an a
 
 Common naming convention is using '-able' suffix on whatever verb describes the behaviour that the module is modeling i.e. swimmable.
 
- 
+Three common uses for modules are:
+
+1. Mixin behaviours to multiple classes that don't have a class inheritance relationship
+2. Namespacing - organizing similar classes into a module
+3. Container for methods - organise methods that seem out of place in the codebase into a module
+
+### Namespacing
+
+Namespacing is process of using modules to group related classes. The advantages are: it makes it easy to recognise related classes in the code and it reduces the likelihood of classes conflicting with other classes of a similar name. 
+
+```ruby
+module Mammal
+  class Dog
+    def speak(sound)
+      p "#{sound}"
+    end
+  end
+
+  class Cat
+    def say_name(name)
+      p "#{name}"
+    end
+  end
+end
+```
+
+ Access classes within a module by using the namespace resolution operator `::` 
+
+```ruby
+poppy = Mammal::Dog.new
+ziggy = Mammal::Cat.new
+```
+
+### Container for methods
+
+Methods stored in a module are called module methods. Module methods can be useful to organise methods that seem out of place in the code.
+
+```ruby
+module WeirdMethods
+  def self.annoying_method
+    puts "I'm a weird method that doesn't fit anywhere else :("
+  end
+end
+
+sad_method = WeirdMethods.annoying_method
+```
+
+Module methods are called directly from the module.
+
+## Collaborator objects
+
+---
+
+Objects that are stored as state within other objects are called **collaborator objects**. They are called this because they work in *collaboration* with the class they are associated with.
+
+Collaborator objects are usually custom objects i.e. defined by the programmer rather than inherited from the Ruby core library. 
+
+```ruby
+class Dog
+  def fetch
+    puts "I can play fetch!"
+  end
+end
+
+class Person
+  attr_accessor :pet
+
+  def initialize(name)
+    @name = name
+  end
+end
+
+jo = Person.new('Jo')
+poppy = Dog.new
+
+jo.pet = poppy
+jo.pet.fetch
+```
+
+In this example `jo` has a collaborator object `poppy` that is stored within the `@pet` instance variable. `jo` object can access public methods within the `Dog` class by calling the `Dog` method on the `pet` variable i.e. `jo.pet.fetch` 
 
 ## `attr_*` methods
 
@@ -424,3 +578,393 @@ fido.a_public_method
 ```
 
 Protected methods aren't commonly used.
+
+## `self`
+
+---
+
+The keyword `self` gives access to the current object.
+
+Two primary uses of `self` :
+
+1. When calling setter methods from within a class.
+2. When defining class methods
+
+What does `self` refer to in these three scenarios:
+
+1. Inside an instance method?
+
+**The calling object**
+
+2. Inside a setter method?
+
+**The instance variable**
+
+3. Prepended to a method definition?
+
+**The class**
+
+## Equivalence
+
+---
+
+### `BasicObject#==` method
+
+The default behaviour of the `BasicObject#==` method is to determine if two objects are equal, not to test if the **value** of two objects are equal. That is why the `BasicObject#==` method is frequently overridden to implement class specific behaviour that compares the value of two objects. 
+
+```ruby
+class Person
+  attr_accessor :name
+end
+
+bob = Person.new
+bob.name = "bob"
+
+bob2 = Person.new
+bob2.name = "bob"
+
+bob == bob2 
+```
+
+`bob == bob2` here we currently calling the `BasicObject#==` method, which will return false because `bob` and `bob2` are two different `Person` class objects. We can override the `==` method:
+
+```ruby
+class Person
+  attr_accessor :name
+
+  def ==(other)
+    name == other.name
+  end
+end
+
+bob = Person.new
+bob.name = "bob"
+
+bob2 = Person.new
+bob2.name = "bob"
+
+bob == bob2 
+```
+
+Now when we call `bob == bob2` we are invoking the `Person#== method` which returns the `name` from the calling object, `bob` and compares the `"bob"` string with the `name` variable retrieved from the object passed in as an argument, `bob2` . Within the `Person#==` method, the `String#==` method is called to compare the two string objects. Now the code will return `true` .
+
+Note that `45 == 45.0` will return `true` even though an `Integer` is being compared with a `Float` . That is because the `Integer#==` method implementation can handle to the conversion of a `Float` to an `Integer` .
+
+When you define `==` you get `!=` for free.
+
+### `equal?` method
+
+The `BasicObject#equal?` method determines if two variables reference the same object (i.e. the same implementation as `BasicObject#==` . Unlike `BasicObject#==` , this method should not be overridden. 
+
+```ruby
+str1 = "something"
+str2 = "something"
+str1_copy = str1
+
+str1.equal? str2        # => false
+str1.equal? str1_copy   # => true
+str2.equal? str1_copy   # => false
+```
+
+### `===` method
+
+The `===` instance method is implicitly used by the `case` statement. 
+
+```ruby
+num = 25
+
+case num
+when 1..50
+  puts "small number"
+when 51..100
+  puts "large number"
+else
+  puts "not in range"
+end
+```
+
+In this example the `case` statement is invoking the `===` method to compare each `when` clause with `num` . In this example the `when` causes are ranges so the `Range#===` method is invoked, as so `1..50 === num` . This code tests if `1..50` is a group, then does `num` belong to that group.
+
+Another example:
+
+```ruby
+String === 'hello'
+```
+
+`String#===` will return `true` because `'hello'` is a `String` object, even though `String` and `'hello'` are not the same objects, nor do they have the same value.
+
+```ruby
+String === 15
+```
+
+This will return `false` because `15` is an `Integer` , not an instance of the `String` class, nor does it have the same value as `String` .
+
+As `===` is usually only used by `case` statements, you would only need to override the default behaviour if you were using custom classes in a `case` statement, which isn't common.
+
+### `eql?` method
+
+`eql?` method determines if two objects contain the same value **and** are instances of the same class. It's most frequently used by `Hash` class to determine equality among it's members. It's not used often and shouldn't be overridden. 
+
+## Variable scope
+
+---
+
+Instance variables = object level
+
+Class variables = class level (one copy shared between all class descendants)
+
+Constants = lexical scope
+
+### Instance variable scope
+
+Instance variables are scoped at the object level therefore, instance variables are accessible in an object's instance methods, even if the instance variable is initialise outside of the instance method. 
+
+If you try to access an instance variable that hasn't been initialised yet, `nil` will be return. This differs from local variables, which returns a `NameError` if you try to reference an uninitialised local variable. 
+
+Sub-classes inherit instance variables from the super-class because the instance methods that initialize the instance variables are inherited.
+
+### Class variable scope
+
+Class variables are scoped at the class level. They exhibit two main behaviours:
+
+1. All class objects share a single copy of a class variable
+2. Class methods can access class variables, regardless of where the class variables was initialised.
+
+```ruby
+class Person
+  @@total_people = 0            # initialized at the class level
+
+  def self.total_people
+    @@total_people              # accessible from class method
+  end
+
+  def initialize
+    @@total_people += 1         # mutable from instance method
+  end
+
+  def total_people
+    @@total_people              # accessible from instance method
+  end
+end
+
+Person.total_people             # => 0
+Person.new
+Person.new
+Person.total_people             # => 2
+
+bob = Person.new
+bob.total_people                # => 3
+
+joe = Person.new
+joe.total_people                # => 4
+
+Person.total_people             # => 4
+```
+
+The fact all sub-classes inherit one copy of each class variable can potentially cause big problems. If a class variable is modified in one sub-class, that modification affects all other classes in the inheritance hierarchy.
+
+```ruby
+class Vehicle
+  @@wheels = 4
+
+  def self.wheels
+    @@wheels
+  end
+end
+
+class Motorcycle < Vehicle
+  @@wheels = 2
+end
+
+Motorcycle.wheels
+# => 2                
+Vehicle.wheels
+# => 2 (would expect 4)
+```
+
+The potential for introducing error is why most Rubyists recommend avoiding class variables, especially when you have class inheritance relationships. 
+
+### Constant scope
+
+Within one class, constants can be accessed in class methods or instance methods.
+
+```ruby
+class Person
+  TITLES = ['Mr', 'Mrs', 'Ms', 'Dr']
+
+  attr_reader :name
+
+  def self.titles
+    TITLES.join(', ')
+  end
+
+  def initialize(n)
+    @name = "#{TITLES.sample} #{n}"
+  end
+end
+
+Person.titles                   # => "Mr, Mrs, Ms, Dr"
+
+bob = Person.new('bob')
+bob.name
+```
+
+Constants can be accessed between two unrelated classes, as long as you specify the class in which the constants were initialized, using the namespace resolution operator:
+
+```ruby
+class Dog
+  LEGS = 4
+end
+
+class Cat
+  def legs
+    Dog::LEGS
+  end
+end
+
+kitty = Cat.new
+kitty.legs
+# => 4
+```
+
+Sub-classes inherit constants from super-classes and can access the constants without the namespace resolution operator:
+
+```ruby
+class Vehicle
+  WHEELS = 4
+end
+
+class Car < Vehicle
+  def self.wheels
+    WHEELS
+  end
+
+  def wheels
+    WHEELS
+  end
+end
+
+Car.wheels
+# => 4
+
+a_car = Car.new
+a_car.wheels
+# => 4
+```
+
+Methods within a module can access constants initialized in a class, as long as you specify the class in which the constants were initialized, using the namespace resolution operator. The module can access constants even if the module hasn't been mixed in to the class.
+
+```ruby
+ module Maintenance
+  def change_tires
+    "Changing #{Vehicle::WHEELS} tyres."
+  end
+end
+
+class Vehicle
+  WHEELS = 4
+end
+
+class Car < Vehicle
+  include Maintenance
+end
+
+a_car = Car.new
+a_car.change_tires
+# => 'Changing 4 tyres'
+```
+
+### Inheriting instance variables in modules
+
+When a modules is mixed in to a class, that class can access instance variables initialized in the module, providing the instance methods that initialize the instance variables have been invoked. 
+
+```ruby
+module Swim
+  def enable_swimming
+    @can_swim = true
+  end
+end
+
+class Dog
+  include Swim
+
+  def swim
+    "swimming!" if @can_swim
+  end
+end
+
+poppy = Dog.new
+poppy.swim
+```
+
+`poppy.swim` will return `nil` because the `Swim#enable_swimming` method has not been invoked, therefore the `@can_swim` instance variable has not been initialized. We would need to invoke the following:
+
+```ruby
+poppy = Dog.new
+poppy.enable_swimming
+poppy.swim
+# => 'swimming!'
+```
+
+## Fake operators
+
+---
+
+![Study%20guide%206618ea45059443328ae6b22c7773db2f/Untitled%201.png](Study%20guide%206618ea45059443328ae6b22c7773db2f/Untitled%201.png)
+
+Anything that's a method can be overridden
+
+When overriding the functionality of methods it's best to follow the general usage of standard libraries.
+
+### The `<<` shift methods
+
+```ruby
+class Library
+  attr_accessor :library
+  def initialize
+    @library = []
+  end
+
+  def <<(item)
+    library.push(item)
+  end
+end
+
+class Book
+  def initialize(title, author)
+    @title = title
+    @author = author
+  end
+end
+
+book1 = Book.new("Pride and Prejudice", "Jane Austen")
+book2 = Book.new("Harry Potter and the Philosopher's Stone", "JK Rowling")
+my_library = Library.new
+
+my_library << book1
+my_library << book2
+```
+
+By creating a `Library#<<` method we can easily add items to the `Library` object.
+
+### Element getter and setter methods
+
+The syntax for using `Array#[]` and `Array#[]=` methods without syntactical sugar are:
+
+```ruby
+def [](idx)
+  array[idx]
+end
+
+my_array.[](2)
+# with syntactical sugar:
+my_array[2] 
+
+def []=(idx, obj)
+  array[idx] = obj
+end
+
+my_array.[]=(4, 'five')
+# with syntactical sugar:
+my_array[4] = 'five'
+```
