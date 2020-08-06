@@ -668,6 +668,30 @@ What does `self` refer to in these three scenarios:
 
 **The class**
 
+In Ruby versions earlier than 2.7 you can't call a `private` method on self. For example, this with invoke a `Private method` error in Ruby 2.6 but it will execute correctly in Ruby 2.7:
+
+```ruby
+class Person
+  attr_reader :name
+  def initialize(name)
+    @name = name
+  end
+
+  def what_am_i
+    self.i_am_self
+  end
+  
+private
+  
+  def i_am_self
+    object_id
+  end
+end
+
+jo = Person.new('Jo')
+p jo.what_am_i
+```
+
 ## Equivalence
 
 ---
