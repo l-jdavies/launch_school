@@ -44,6 +44,10 @@ We have instantiated an object called `sparky` from the class `GoodDog` by invok
 
 The string `"Sparky"` is passed from the `new` method through to the `initialize` method where is assigned to the parameter `name` . Within the constructor, the instance variable `@name` is initialized and assigned the value referenced by the `name` parameter, which in this case is the string `"Sparky"` .
 
+### Object State
+
+Every object is an instantiation of a class. Objects encapsulate state. Instance methods perform functions on the object's state.
+
 ## Method lookup
 
 ---
@@ -80,6 +84,45 @@ Kernel
 BasicObject
 ```
 
+## Abstraction
+
+---
+
+Abstraction is a process of hiding the implementation details from the user, only the functionality will be provided to the user i.e. the user will have the information on what the object does instead of how it does it.  Methods are an example of abstraction - the process of how an action occurs is hidden from the user, the user just needs to know the outcome of the action. 
+
+Encapsulation = a kind of abstraction that involves containing all the data and functionality for part of your program within a single construct, and exposing an interface for that construct.
+
+Abstraction = hiding the details of **how** something works to focus on **what** it does.
+
+**Benefits:**
+
+1. Abstraction helps to reduce the complexity of the design and implementation process of software. 
+2. Enables developers to think on a 'higher level' without getting bogged down in the underlying mechanics of every process.
+
+**How it is achieved:**
+
+The Ruby language itself is an example of abstraction! Classes, methods and modules are all used to achieve abstraction.
+
+- **Example code:**
+
+    ```ruby
+    Class Dog
+    	attr_reader :name, :age
+
+    	def initialize(name, age)
+    		@name = name
+    		@age
+    	end
+
+    	def info
+    		puts "My name is #{name} and I am #{age} years old!"
+    	end
+    end
+
+    poppy = Dog.new("Poppy", 10)
+    poppy.info
+    ```
+
 ## Encapsulation
 
 ---
@@ -94,6 +137,8 @@ Encapsulation is also a form of abstraction because it involves containing all t
 
 ```ruby
  class Dog
+  attr_reader :name
+
   def initialize(name)
     @name = name
   end
@@ -108,7 +153,13 @@ Encapsulation is also a form of abstraction because it involves containing all t
 end
 
 dog = Dog.new('Poppy')
+puts dog.name
+# => "Poppy"
 dog.change_name('Skip')
+puts dog.name
+# => "Skip"
+
+dog.name = "Bob"
 ```
 
 In this example the `attr_writer` method for `@name`, which provides access to the setter method is a `private` method and so cannot be accessed directly. The value of `@name` can only be re-assigned by invoking the public method `change_name`. 
@@ -205,6 +256,8 @@ river_swimmers.each { |swimmer| gone_swimming(swimmer) }
 ## Inheritance
 
 ---
+
+Inheritance in Ruby extracts common behaviors into a single super-class. Sub-classes inherit from a single super-class. Sub-classes can contain more specialised behaviours. Inheritance removes repetitive code.
 
 Inheritance can be implemented in two primary manners: class inheritance and interface inheritance. 
 
@@ -393,9 +446,9 @@ jo.ssn
 
 Instead of using `attr_reader` method to access to getter method for `ssn` we have explicitly created a `ssn` getter method. This `ssn` method prevents the `@ssn` instance variable being exposed to the public interface.  
 
-## `super` method
+## `super`
 
-`super` is a method that enables us to call methods earlier in the method lookup path. When `super` is invoked from within a method, Ruby will search the method lookup path for a method with the same name, then invoke it.
+`super` is a keyword that enables us to call methods earlier in the method lookup path. When `super` is invoked from within a method, Ruby will search the method lookup path for a method with the same name, then invoke it.
 
 ```ruby
 class Animal
@@ -561,23 +614,34 @@ As of Ruby 2.7 it is legal to call private methods with literal `self` as the ca
 - from outside the class, `protected` methods act just like `private` methods.
 
 ```ruby
- class Animal
-  def a_public_method
-    "Will this work? " + self.a_protected_method
+ class Wallet
+  include Comparable
+
+  def initialize(amount)
+    @amount = amount
+  end
+
+  def <=>(other_wallet)
+    amount <=> other_wallet.amount
   end
 
   protected
 
-  def a_protected_method
-    "Yes, I'm protected!"
-  end
+  attr_reader :amount
 end
 
-fido = Animal.new
-fido.a_public_method
+bills_wallet = Wallet.new(500)
+pennys_wallet = Wallet.new(465)
+if bills_wallet > pennys_wallet
+  puts 'Bill has more money than Penny'
+elsif bills_wallet < pennys_wallet
+  puts 'Penny has more money than Bill'
+else
+  puts 'Bill and Penny have the same amount of money.'
+end
 ```
 
-Protected methods aren't commonly used.
+In this example if `attr_reader :amount` was private then `bills_wallet > pennys_wallet` would invoke a `private_method` error because `amount <=> other_wallet.amount` needs to retrieve the `amount` from the other object. This works when `attr_reader :amount` is a `private` method because the class can call `protected` methods of any object of the same class. Therefore the `bills_wallet` object can access the `amount` variable from `pennys_wallet` object.
 
 ## `self`
 
