@@ -57,6 +57,10 @@ class TodoList
     todos.first
   end
 
+  def last
+    todos.last
+  end
+
   def to_a
     arr = []
     todos.each { |el| arr << el }
