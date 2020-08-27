@@ -77,8 +77,6 @@
 #  return `return_val`
 
 class CircularBuffer
-  attr_accessor :queue, :head, :tail
-
   def initialize(max)
     @head = 0
     @tail = 0
